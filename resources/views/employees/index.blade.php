@@ -1,0 +1,6 @@
+@extends('layouts.app')
+@section('title','Employees')
+@section('content')
+<div class="page-heading"><div><span class="eyebrow">THE PEOPLE BEHIND THE CONVERSATIONS</span><h1>Your team</h1><p>Manage access, registered calling numbers, and lead ownership.</p></div><a class="button primary" href="{{ route('employees.create') }}"><x-icon name="plus" size="18"/>Add employee</a></div>
+<div class="panel"><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Calling number</th><th>Assigned leads</th><th>Status</th><th>Last login · IST</th><th></th></tr></thead><tbody>@forelse($employees as $employee)<tr><td><div class="person"><span class="avatar">{{ mb_substr($employee->name,0,1) }}</span><div><strong>{{ $employee->name }}</strong><small>{{ $employee->email }}</small></div></div></td><td>{{ $employee->phone }}</td><td>{{ $employee->leads_count }}</td><td><x-badge :value="$employee->active?'Active':'Inactive'"/></td><td>{{ \App\Support\India::display($employee->last_login_at,'d M, h:i A') }}</td><td><a class="button small" href="{{ route('employees.edit',$employee) }}">Manage</a></td></tr>@empty<tr><td colspan="6" class="empty">Add your first employee to begin assigning leads.</td></tr>@endforelse</tbody></table></div><div class="pagination-wrap">{{ $employees->links() }}</div></div>
+@endsection

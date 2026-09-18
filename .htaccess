@@ -1,0 +1,8 @@
+# Defense in depth for XAMPP subfolder usage. Production document root MUST be public/.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^$ public/ [R=302,L]
+    RewriteRule ^public(?:/|$) - [L]
+    RewriteRule .* - [F,L]
+</IfModule>
+Options -Indexes
