@@ -26,4 +26,15 @@
 @if($errors->any())<div class="alert error" role="alert"><div><strong>Please check the following</strong><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div></div>@endif
 @yield('content')
 <footer class="page-footer"><span>TeleCRM · A clearer view of every conversation.</span><span>India workspace · IST</span></footer>
-</main></div></body></html>
+</main></div>
+@auth
+<script>
+    if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'AUTH_SUCCESS',
+            payload: { employee_id: {{ auth()->id() }} }
+        }));
+    }
+</script>
+@endauth
+</body></html>

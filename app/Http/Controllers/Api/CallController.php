@@ -21,12 +21,42 @@ class CallController extends Controller
 
         foreach ($attempts as $attempt) {
             $attemptId = $attempt['attemptId'] ?? null;
-            if (!$attemptId || str_starts_with($attemptId, 'manual_')) {
-                continue; // Cannot sync manual unlinked calls yet
-            }
+            if (!$attemptId) continue;
 
-            // Find the pending call record
             $call = \App\Models\Call::where('request_key', $attemptId)->first();
+
+            // Handle manual dialed calls from the app
+            if (str_starts_with($attemptId, 'manual_') && !$call) {
+                $employeeId = $request->input('employee_id');
+                if (!$employeeId) continue; // Can't record without employee
+
+                $targetPhone = preg_replace('/[^0-9]/', '', $attempt['phoneNumber']);
+                
+                // Find or create lead
+                $lead = \App\Models\Lead::where('phone', 'like', '%' . substr($targetPhone, -10))->first();
+                if (!$lead) {
+                    $lead = \App\Models\Lead::create([
+                        'name' => 'Manual Lead - ' . $attempt['phoneNumber'],
+                        'phone' => '+' . $targetPhone,
+                        'source' => 'App Dialer',
+                        'stage' => 'New',
+                        'assigned_to' => $employeeId,
+                    ]);
+                }
+
+                // Create placeholder call to be processed below
+                $call = \App\Models\Call::create([
+                    'request_key' => $attemptId,
+                    'lead_id' => $lead->id,
+                    'employee_id' => $employeeId,
+                    'provider' => 'native',
+                    'callback_token' => \Illuminate\Support\Str::random(64),
+                    'employee_phone' => 'unknown',
+                    'customer_phone' => $lead->phone,
+                    'status' => 'initiating',
+                    'initiated_at' => now()->subMinutes(1), // Approximate
+                ]);
+            }
             
             if ($call && $call->isActive()) {
                 // Find matching duration from the native call log
