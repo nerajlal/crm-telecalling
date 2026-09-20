@@ -44,3 +44,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/leads/{lead}/follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
     Route::put('/follow-ups/{followUp}',[FollowUpController::class, 'update'])->name('follow-ups.update');
 });
+
+// API Route for React Native App to Sync Call Logs
+// Assuming token or separate authentication will be configured later.
+Route::post('/api/calls/sync', [\App\Http\Controllers\Api\CallController::class, 'sync'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
