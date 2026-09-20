@@ -32,7 +32,13 @@ class CallController extends Controller
         $data = $r->validate(['request_key' => 'required|uuid', 'duration' => 'prohibited', 'duration_seconds' => 'prohibited', 'status' => 'prohibited', 'customer_status' => 'prohibited', 'initiated_at' => 'prohibited', 'connected_at' => 'prohibited', 'ended_at' => 'prohibited', 'provider_sid' => 'prohibited', 'employee_id' => 'prohibited', 'employee_phone' => 'prohibited', 'customer_phone' => 'prohibited']);
         $call = $service->start($lead, $r->user(), $data['request_key']);
 
-        return redirect()->route('leads.show', $lead)->with($call->status === 'unknown' ? 'warning' : 'success', $call->provider === 'demo' ? 'Demo call started. No phones will ring. Choose a simulated result below.' : ($call->status === 'unknown' ? 'Call acceptance is uncertain. Ask the owner to check before redialing.' : ($call->status === 'failed' ? 'Provider rejected the call. Check the call history.' : 'Call requested. Answer your registered phone.')));
+        return redirect()->route('leads.show', $lead)
+            ->with($call->status === 'unknown' ? 'warning' : 'success', $call->provider === 'demo' ? 'Demo call started. No phones will ring. Choose a simulated result below.' : ($call->status === 'unknown' ? 'Call acceptance is uncertain. Ask the owner to check before redialing.' : ($call->status === 'failed' ? 'Provider rejected the call. Check the call history.' : 'Call requested. Answer your registered phone.')))
+            ->with('native_dial', [
+                'attemptId' => $call->request_key,
+                'customerId' => (string) $lead->id,
+                'phoneNumber' => $lead->phone,
+            ]);
     }
 
     public function demo(Request $r, Call $call, CallService $service)

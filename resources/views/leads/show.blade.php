@@ -11,3 +11,14 @@
 <section class="panel"><div class="panel-heading"><h2>Lead timeline</h2><span class="muted">A complete trail</span></div><div class="timeline">@foreach($activities as $activity)<div class="timeline-item"><span class="timeline-dot"></span><div><div class="timeline-meta"><strong>{{ $activity->user?->name??'System' }}</strong><small>{{ \App\Support\India::display($activity->created_at,'d M, h:i A') }}</small></div><p>{{ $activity->description }}</p></div></div>@endforeach</div><div class="pagination-wrap">{{ $activities->links() }}</div></section></div>
 <div class="stack"><section class="panel"><div class="panel-heading"><div><h2>Plan the next conversation</h2><p>Follow-up times are in IST</p></div></div><form class="panel-body stack" method="post" action="{{ route('follow-ups.store',$lead) }}">@csrf<label>Date and time<input type="datetime-local" name="due_at" value="{{ old('due_at') }}" required></label><label>What needs to happen?<textarea name="note" rows="3" maxlength="2000" placeholder="Call back with the proposal…" required></textarea></label><button class="button primary">Schedule follow-up</button></form></section><section class="panel"><div class="panel-heading"><h2>Follow-ups</h2></div><div class="panel-body stack">@forelse($followUps as $item)<div class="follow-card"><div class="follow-card-top"><strong>{{ \App\Support\India::display($item->due_at,'d M, h:i A') }}</strong><x-badge :value="$item->completed_at?'completed':($item->due_at->isPast()?'Overdue':'pending')"/></div><p>{{ $item->note }}</p><small class="muted">{{ $item->employee->name }}</small>@unless($item->completed_at)<form method="post" action="{{ route('follow-ups.update',$item) }}">@csrf @method('put')<input name="action" type="hidden" value="complete"><button class="button subtle small">Mark complete</button></form><details><summary>Reschedule</summary><form class="stack" action="{{ route('follow-ups.update',$item) }}" method="post">@csrf @method('put')<input type="hidden" name="action" value="reschedule"><label>New time · IST<input name="due_at" type="datetime-local" required></label><button class="button small">Save time</button></form></details>@endunless</div>@empty<p class="muted">No follow-ups scheduled.</p>@endforelse</div></section></div></div>
 @endsection
+
+@if(session('native_dial'))
+<script>
+    if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'CALL_REQUEST',
+            payload: @json(session('native_dial'))
+        }));
+    }
+</script>
+@endif
